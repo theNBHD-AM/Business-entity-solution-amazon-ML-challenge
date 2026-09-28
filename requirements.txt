@@ -1,0 +1,43 @@
+# Core data
+polars>=0.20.0
+pandas>=2.1.0
+pyarrow>=14.0.0
+numpy>=1.26.0
+
+# ML
+lightgbm>=4.3.0
+xgboost>=2.0.3
+scikit-learn>=1.4.0
+imbalanced-learn>=0.12.0
+
+# NLP / string matching
+rapidfuzz>=3.6.1
+jarowinkler>=2.0.0
+indic-transliteration>=2.3.57
+
+# Embeddings
+sentence-transformers>=2.6.1
+torch>=2.2.0
+transformers>=4.39.0
+
+# ANN indexing
+faiss-cpu>=1.8.0
+
+# MinHash LSH
+datasketch>=1.6.4
+
+# Phonetics
+jellyfish>=1.0.3
+
+# Logging / utils
+loguru>=0.7.2
+tqdm>=4.66.0
+pyyaml>=6.0.1
+rich>=13.7.0
+click>=8.1.7
+
+# Calibration
+scipy>=1.12.0
+
+# Optional LLM refinement
+# accelerate>=0.27.0  # uncomment if running LLM refinement on GPU

@@ -1,0 +1,95 @@
+# ============================================================
+# Business Entity Resolution — Pipeline Configuration
+# ============================================================
+
+paths:
+  raw_data_dir: "data/raw"
+  processed_dir: "data/processed"
+  artifacts_dir: "data/artifacts"
+  output_dir: "outputs"
+
+data:
+  source1_train: "data/raw/train_source1.tsv"
+  source2_train: "data/raw/train_source2.tsv"
+  source3_train: "data/raw/train_source3.tsv"
+  train_labels: "data/raw/train_ground_truth.tsv"
+  source1_test: "data/raw/test_source1.tsv"
+  source2_test: "data/raw/test_source2.tsv"
+  source3_test: "data/raw/test_source3.tsv"
+  chunk_size: 50000  # rows per chunk for streaming reads
+
+normalization:
+  legal_suffix_min_freq: 5    # min occurrences to include in canonicalization map
+  null_tokens:
+    - "NULL"
+    - "N/A"
+    - "NA"
+    - "-"
+    - "NONE"
+    - "null"
+    - "none"
+    - "n/a"
+  address_abbrev_expand: true
+  transliterate_devanagari: true
+
+blocking:
+  embedding_model: "intfloat/multilingual-e5-base"  # Apache-2.0 (278M params, 2.5x faster, high recall)
+  # alternatives: "intfloat/multilingual-e5-large", "BAAI/bge-m3"
+  embedding_batch_size: 512
+  embedding_max_length: 64
+  faiss_nlist: 1024           # IVF number of centroids  (sqrt(N) heuristic)
+  faiss_nprobe: 64            # probes at query time — higher = better recall
+  faiss_m: 64                 # PQ subquantizers
+  faiss_nbits: 8              # bits per subquantizer
+  ann_top_k: 50              # ANN candidates before re-ranking
+  final_top_k: 30            # candidates after merging all signals
+  minhash_num_perm: 128
+  minhash_threshold: 0.25     # LSH band threshold
+  phonetic_blocking: true
+  geo_blocking: true
+
+features:
+  embedding_cosine: true
+  tfidf_vocab_size: 50000
+
+model:
+  gbm_backend: "lightgbm"     # or "xgboost"
+  n_folds: 5
+  random_state: 42
+  class_weight: "balanced"
+  hard_negative_ratio: 5      # negatives per positive in training
+  calibration_method: "isotonic"  # or "sigmoid" (Platt)
+  lightgbm_params:
+    n_estimators: 1000
+    learning_rate: 0.05
+    num_leaves: 127
+    min_child_samples: 20
+    subsample: 0.8
+    colsample_bytree: 0.8
+    reg_alpha: 0.1
+    reg_lambda: 1.0
+    metric: "binary_logloss"
+    verbosity: -1
+
+threshold:
+  search_range: [0.3, 0.95]
+  search_steps: 65
+  metric: "f_beta"            # maximize F_0.5
+  beta: 0.5
+
+dl_refinement:
+  enabled: false              # set true to activate LLM refinement pass
+  model_id: "Qwen/Qwen2.5-7B-Instruct"
+  ambiguous_low: 0.40
+  ambiguous_high: 0.70
+  few_shot_k: 4
+  max_new_tokens: 8
+
+synthetic_france:
+  enabled: true
+  n_samples: 5000
+  inject_into_validation: true
+
+logging:
+  level: "INFO"
+  log_dir: "logs"
